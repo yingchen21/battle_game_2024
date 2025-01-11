@@ -104,9 +104,9 @@ void GameCore::Render() {
   }
 }
 
-uint32_t GameCore::AddPlayer() {
+uint32_t GameCore::AddPlayer(bool ai_control) {
   uint32_t player_id = player_index_++;
-  players_[player_id] = std::make_unique<Player>(this, player_id);
+  players_[player_id] = std::make_unique<Player>(this, player_id, ai_control);
   return player_id;
 }
 

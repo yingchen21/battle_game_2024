@@ -3,9 +3,9 @@
 #include "battle_game/core/game_core.h"
 
 namespace battle_game {
-Player::Player(GameCore *game_core, uint32_t id)
-    : game_core_(game_core), id_(id) {
-}
+// Player::Player(GameCore *game_core, uint32_t id)
+//     : game_core_(game_core), id_(id) {
+// }
 
 void Player::Update() {
   auto primary_unit = game_core_->GetUnit(primary_unit_id_);
@@ -17,6 +17,18 @@ void Player::Update() {
     if (!resurrection_count_down_) {
       primary_unit_id_ = game_core_->AllocatePrimaryUnit(id_);
     }
+  }
+  primary_unit = game_core_->GetUnit(primary_unit_id_);
+  if(primary_unit && ai_control_) {
+    const auto& units = game_core_->GetUnits();
+    InputData in_data{};
+    for(auto& u : units) {
+      if(u.second->GetPlayerId() == id_) { continue; }
+      in_data.mouse_cursor_position = u.second->GetPosition();
+      in_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT] = true;
+      break;
+    }
+    SetInputData(in_data);
   }
 }
 }  // namespace battle_game

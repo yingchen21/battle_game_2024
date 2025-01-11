@@ -6,7 +6,9 @@ namespace battle_game {
 class GameCore;
 class Player {
  public:
-  Player(GameCore *game_core, uint32_t id);
+  Player(GameCore *game_core, uint32_t id, bool ai_control)
+      : game_core_(game_core), id_(id), ai_control_(ai_control) {
+  };
   [[nodiscard]] uint32_t GetId() const {
     return id_;
   }
@@ -35,5 +37,6 @@ class Player {
   uint32_t primary_unit_id_{};
   uint32_t resurrection_count_down_{1};
   int selected_unit_{0};
+  bool ai_control_{false};
 };
 }  // namespace battle_game
