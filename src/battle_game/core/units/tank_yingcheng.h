@@ -19,5 +19,7 @@ class Tank_yingcheng : public Unit {
   float turret_rotation_{0.0f};
   uint32_t fire_count_down_{0};
   uint32_t mine_count_down_{0};
+  bool auto_aim_{false};
+  bool auto_fire_{false};
 };
 }  // namespace battle_game::unit

@@ -122,7 +122,25 @@ void Tank_yingcheng::TurretRotate() {
   auto player = game_core_->GetPlayer(player_id_);
   if (player) {
     auto &input_data = player->GetInputData();
-    auto diff = input_data.mouse_cursor_position - position_;
+    if (input_data.key_down[GLFW_KEY_T]) {
+      auto_aim_ = !auto_aim_;
+    }
+    if (input_data.key_down[GLFW_KEY_F]) {
+      auto_fire_ = !auto_fire_;
+    }
+    glm::vec2 target_pos{0.0f, 0.0f};
+    if(auto_aim_) {
+      const auto& units = game_core_->GetUnits();
+      for(auto& u : units) {
+        if(u.second->GetPlayerId() != GetPlayerId()) {
+          target_pos = u.second->GetPosition();
+          break;
+        }
+      }
+    } else {
+      target_pos = input_data.mouse_cursor_position;
+    }
+    auto diff = target_pos - position_;
     if (glm::length(diff) < 1e-4) {
       turret_rotation_ = rotation_;
     } else {
@@ -136,12 +154,35 @@ void Tank_yingcheng::Fire() {
     auto player = game_core_->GetPlayer(player_id_);
     if (player) {
       auto &input_data = player->GetInputData();
-      if (input_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT]) {
+      if (input_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT] && !auto_fire_) {
         auto velocity = Rotate(glm::vec2{0.0f, 20.0f}, turret_rotation_);
         GenerateBullet<bullet::CannonBall>(
             position_ + Rotate({0.0f, 1.2f}, turret_rotation_),
             turret_rotation_, GetDamageScale(), velocity);
         fire_count_down_ = kTickPerSecond;  // Fire interval 1 second.
+      }
+      if(auto_fire_) {
+        auto velocity = Rotate(glm::vec2{0.0f, 20.0f}, turret_rotation_);
+        bool fire = false;
+        const auto& units = game_core_->GetUnits();
+        float tgt_rotation = 0.0f;
+        for(auto& u : units) {
+          if(u.second->GetPlayerId() == GetPlayerId()) { continue; }
+          auto diff = u.second->GetPosition() - position_;
+          if(glm::length(diff) > 1e-4) {
+            tgt_rotation = std::atan2(diff.y, diff.x) - glm::radians(90.0f);
+            if(std::abs(tgt_rotation - turret_rotation_) < glm::radians(1.0f)) {
+              fire = true;
+              break;
+            }
+          }
+        }
+        if(fire) {
+          GenerateBullet<bullet::CannonBall>(
+              position_ + Rotate({0.0f, 1.2f}, turret_rotation_),
+              turret_rotation_, GetDamageScale(), velocity);
+          fire_count_down_ = kTickPerSecond;  // Fire interval 1 second.
+        }
       }
     }
   }
