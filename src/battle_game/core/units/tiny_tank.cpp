@@ -91,10 +91,13 @@ void Tank::TankMove(float move_speed, float rotate_angular_speed) {
     auto &input_data = player->GetInputData();
     glm::vec2 offset{0.0f};
     if (input_data.key_down[GLFW_KEY_W]) {
-      offset.y += 1.0f;
+      offset.y += 0.7f;
     }
     if (input_data.key_down[GLFW_KEY_S]) {
-      offset.y -= 1.0f;
+      offset.y -= 0.3f;
+    }
+    if (input_data.key_down[GLFW_KEY_LEFT_SHIFT]) {
+      offset.y *= 2.0f;
     }
     float speed = move_speed * GetSpeedScale();
     offset *= kSecondPerTick * speed;
@@ -122,11 +125,29 @@ void Tank::TurretRotate() {
   if (player) {
     auto &input_data = player->GetInputData();
     auto diff = input_data.mouse_cursor_position - position_;
-    if (glm::length(diff) < 1e-4) {
-      turret_rotation_ = rotation_;
-    } else {
-      turret_rotation_ = std::atan2(diff.y, diff.x) - glm::radians(90.0f);
+    // if (glm::length(diff) < 1e-4) {
+    //   turret_rotation_ = rotation_;
+    // } else {
+    //   turret_rotation_ = std::atan2(diff.y, diff.x) - glm::radians(90.0f);
+    // }
+    float target_rotation = std::atan2(diff.y, diff.x) - glm::radians(90.0f);
+    float diff_rotation = target_rotation - turret_rotation_;
+    if (abs(diff_rotation) > glm::pi<float>()) {
+      if (diff_rotation > 0) {
+        diff_rotation -= glm::pi<float>() * 2.0f;
+      } else {
+        diff_rotation += glm::pi<float>() * 2.0f;
+      }
     }
+    if (diff_rotation > max_turret_rotation_per_tick_) {
+      turret_rotation_ += max_turret_rotation_per_tick_;
+    } else if (diff_rotation < -max_turret_rotation_per_tick_) {
+      turret_rotation_ -= max_turret_rotation_per_tick_;
+    } else {
+      turret_rotation_ = target_rotation;
+    }
+    if (turret_rotation_ < 0) { turret_rotation_ += glm::pi<float>() * 2.0f; }
+    if (turret_rotation_ > glm::pi<float>() * 2.0f) { turret_rotation_ -= glm::pi<float>() * 2.0f; }
   }
 }
 
